@@ -16,8 +16,8 @@ function cors(res){res.setHeader('Access-Control-Allow-Origin','*');res.setHeade
 const defaultData={enabled:false,title:'FLARE — сайт отключён на проведение работ',text:'Сайт закрыт до 1 сентября — 06:00 по МСК',expiresAt:DEFAULT_UNTIL};
 function normalize(data){
   const value={...defaultData,...(data||{})};
-  const expiresAt=value.expiresAt||DEFAULT_UNTIL;
-  const expiresMs=Date.parse(expiresAt);
+  const expiresAt=value.expiresAt===null?null:(value.expiresAt||DEFAULT_UNTIL);
+  const expiresMs=expiresAt?Date.parse(expiresAt):NaN;
   const expired=Number.isFinite(expiresMs)&&Date.now()>=expiresMs;
   return {enabled:Boolean(value.enabled)&&!expired,title:String(value.title||defaultData.title),text:String(value.text||defaultData.text),expiresAt};
 }
@@ -32,7 +32,8 @@ export default async function handler(req,res){
       const login=req.headers['x-flare-admin-login'],password=req.headers['x-flare-admin-password'];
       if(login!==LOGIN||password!==PASSWORD)return cors(res.status(401).json({error:'Unauthorized'}));
       const body=typeof req.body==='string'?JSON.parse(req.body):req.body||{};
-      const data=normalize({enabled:Boolean(body.enabled),title:String(body.title||defaultData.title),text:String(body.text||defaultData.text),expiresAt:body.expiresAt||DEFAULT_UNTIL});
+      const expiresAt=Object.prototype.hasOwnProperty.call(body,'expiresAt')?body.expiresAt:DEFAULT_UNTIL;
+      const data=normalize({enabled:Boolean(body.enabled),title:String(body.title||defaultData.title),text:String(body.text||defaultData.text),expiresAt:expiresAt===null?null:expiresAt});
       await redis('SET',[KEY,JSON.stringify(data)]);
       return cors(res.status(200).json({ok:true,...data}));
     }
