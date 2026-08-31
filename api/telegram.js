@@ -32,7 +32,6 @@ export default async function handler(req, res) {
         .replace(/&#x27;/gi, "'")
         : 'Публикация FLARE';
 
-      // Keep Telegram line breaks so the first line can be used as the news headline.
       const lines = text
         .split(/\r?\n+/)
         .map(x => x.replace(/[ \t]+/g, ' ').trim())
@@ -43,7 +42,9 @@ export default async function handler(req, res) {
 
       const timeMatch = block.match(/<time[^>]+datetime="([^"]+)"/);
       const photoMatch = block.match(/background-image:url\('([^']+)'\)/);
-      const hasVideo = /tgme_widget_message_video|<video\b|tgme_widget_message_document_video/.test(block);
+      const videoMatch = block.match(/<video[^>]+src="([^"]+)"[^>]*>/i);
+      const videoUrl = videoMatch ? videoMatch[1].replace(/&amp;/g, '&') : '';
+      const hasVideo = Boolean(videoUrl) || /tgme_widget_message_video|tgme_widget_message_document_video/.test(block);
 
       posts.push({
         id,
@@ -53,7 +54,8 @@ export default async function handler(req, res) {
         time: timeMatch ? timeMatch[1] : '',
         link: `https://t.me/flare_itv/${id}`,
         image: photoMatch ? photoMatch[1].replace(/&amp;/g, '&') : '',
-        hasVideo
+        hasVideo,
+        videoUrl
       });
     }
 
