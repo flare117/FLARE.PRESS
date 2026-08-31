@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FLARE — Админ-панель</title><link rel="stylesheet" href="styles.css"></head>
+<body class="adminPage">
+<header class="top"><div class="wrap nav"><a class="logo" href="index.html">FLARE</a><nav><a href="index.html">На сайт</a></nav></div></header>
+<main class="wrap adminWrap">
+<section id="loginBox" class="adminCard loginCard"><span class="eyebrow">FLARE / ADMIN</span><h1>Панель управления</h1><p>Войдите, чтобы изменить контент сайта.</p><form id="loginForm"><input id="login" autocomplete="username" placeholder="Логин" required><input id="password" type="password" autocomplete="current-password" placeholder="Пароль" required><button class="redBtn" type="submit">Войти</button><div id="loginError" class="adminError"></div></form></section>
+<section id="panel" class="adminPanel" hidden>
+<div class="adminBar"><div><span class="eyebrow">FLARE / ADMIN</span><h1>Управление сайтом</h1></div><button class="ghostAdmin" id="logout">Выйти</button></div>
+<div class="adminNotice"><b>Важно:</b> GitHub Pages — статический хостинг. Изменения этой версии сохраняются в <b>localStorage</b> текущего браузера.</div>
+<div class="adminTabs" role="tablist">
+<button class="adminTab active" data-tab="newsTab">📰 Новости</button>
+<button class="adminTab" data-tab="scheduleTab">📺 Сейчас и далее</button><button class="adminTab" data-tab="programsTab">🎬 Программы FLARE</button>
+<button class="adminTab" data-tab="rateTab">💱 Курс</button>
+<button class="adminTab" data-tab="liveTab">🔴 Эфир</button>
+<button class="adminTab" data-tab="aboutTab">ℹ️ О канале</button>
+</div>
+
+<section id="newsTab" class="adminTabPanel active"><div class="adminGrid">
+<section class="adminCard wide"><h2>Главная новость</h2><label>Заголовок<input id="newsTitle"></label><label>Текст<textarea id="newsText"></textarea></label><label>Время<input id="newsTime"></label></section>
+<section class="adminCard"><h2>Новость 2</h2><label>Заголовок<input id="news2Title"></label><label>Категория<input id="news2Category"></label></section>
+<section class="adminCard"><h2>Новость 3</h2><label>Заголовок<input id="news3Title"></label><label>Категория<input id="news3Category"></label></section>
+</div></section>
+
+<section id="scheduleTab" class="adminTabPanel"><div class="adminGrid">
+<section class="adminCard"><h2>Сейчас в эфире</h2><label>Название<input id="onairTitle"></label><label>Описание<textarea id="onairText"></textarea></label></section>
+<section class="adminCard"><h2>Далее</h2><label>Следующая передача<input id="nextTitle"></label><label>Время<input id="nextTime"></label></section>
+<section class="adminCard"><h2>Расписание</h2><label>10:00<input id="sch1Title"></label><label>10:25<input id="sch2Title"></label><label>11:00<input id="sch3Title"></label><label>11:30<input id="sch4Title"></label></section>
+</div></section>
+
+<section id="programsTab" class="adminTabPanel"><div class="adminGrid">
+<section class="adminCard"><h2>Программа 1</h2><label>Название<input id="program1Title"></label><label>Описание<input id="program1Text"></label></section>
+<section class="adminCard"><h2>Программа 2</h2><label>Название<input id="program2Title"></label><label>Описание<input id="program2Text"></label></section>
+<section class="adminCard"><h2>Программа 3</h2><label>Название<input id="program3Title"></label><label>Описание<input id="program3Text"></label></section>
+</div></section>
+
+<section id="rateTab" class="adminTabPanel"><div class="adminGrid">
+<section class="adminCard wide"><h2>Актуальный курс валют и металлов</h2><p class="muted">Нажмите «Обновить валюты», чтобы получить USD и EUR из открытого источника ЦБ РФ. Металлы можно указать вручную.</p><div class="rateGrid">
+<label>USD / ₽<input id="rateUSD" type="number" step="0.0001"></label>
+<label>EUR / ₽<input id="rateEUR" type="number" step="0.0001"></label>
+<label>Золото / ₽<input id="rateGold" type="number" step="0.01"></label>
+<label>Серебро / ₽<input id="rateSilver" type="number" step="0.01"></label>
+<label>Платина / ₽<input id="ratePlatinum" type="number" step="0.01"></label>
+<label>Палладий / ₽<input id="ratePalladium" type="number" step="0.01"></label>
+</div><div class="rateActions"><button class="redBtn" id="refreshRates" type="button">Обновить валюты</button><span id="rateStatus" class="saved"></span></div></section>
+</div></section>
+
+<section id="liveTab" class="adminTabPanel"><div class="adminGrid"><section class="adminCard wide"><h2>Прямой эфир VK Видео</h2><label class="check"><input type="checkbox" id="liveEnabled"> Показывать трансляцию</label><label>Ссылка VK Видео Live (embed)<input id="vkUrl" placeholder="https://live.vkvideo.ru/app/embed/ИМЯ_КАНАЛА?autoplay=true"></label><p class="muted">Если эфир выключен, на плеере отображается «Прямой трансляции нет».</p></section></div></section>
+
+<section id="aboutTab" class="adminTabPanel"><div class="adminGrid"><section class="adminCard wide"><h2>О канале</h2><label>Описание<textarea id="aboutText"></textarea></label><label>Год основания<input id="aboutYear"></label></section></div></section>
+
+<div class="adminActions"><button class="redBtn" id="save">Сохранить изменения</button><button class="ghostAdmin" id="reset">Сбросить</button><span id="saved" class="saved"></span></div>
+</section></main>
+<script src="script.js"></script><script src="admin.js"></script></body></html>
