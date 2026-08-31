@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Подробная новость FLARE">
+<title>Новость — FLARE</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top"><div class="wrap nav"><a class="logo" href="index.html">FLARE</a><nav><a href="index.html">Главная</a><a class="active" href="news.html">Новости</a><a href="schedule.html">Телепрограмма</a><a href="programs.html">Программы</a><a href="about.html">О канале</a></nav><button class="searchBtn" onclick="openSearch()">⌕</button></div></header>
+<div class="ticker"><div class="wrap tickerInner"><strong>FLARE</strong><span>Новости</span><span>Главное за день</span><span>Прямой эфир</span><span class="tickerTime" id="clock">--:--</span></div></div>
+<main class="wrap articlePage">
+<a class="articleBack" href="news.html">← Все новости</a>
+<article id="article" class="article">
+<div class="articleLoading">Загружаем новость…</div>
+</article>
+</main>
+<footer><div class="wrap footerGrid"><div><div class="logo">FLARE</div><p>Интернет-телеканал нового формата.</p></div><div><b>Разделы</b><a href="news.html">Новости</a><a href="schedule.html">Телепрограмма</a><a href="programs.html">Программы</a></div><div><b>Связь</b><a href="https://t.me/managerflareof" target="_blank" rel="noopener">Telegram: @managerflareof</a></div></div><div class="copy">© 2026 FLARE · 12+</div></footer>
+<div id="search" class="overlay" onclick="closeSearch(event)"><div class="searchBox" onclick="event.stopPropagation()"><div class="searchTitle"><b>Поиск</b><button onclick="closeSearch()">×</button></div><input id="q" placeholder="Найти новости, программы..." oninput="searchSite()"><div id="results"></div></div></div>
+<script src="script.js"></script>
+<script>
+(async function(){
+ const root=document.getElementById('article');
+ const esc=escHtml;
+ const params=new URLSearchParams(location.search);
+ const id=params.get('id');
+ const manual=params.get('manual')==='1';
+ const index=Math.max(0,Math.min(2,Number(params.get('index')||0)));
+ const d=flareData();
+ function show(p,cat='FLARE · TELEGRAM'){
+   const date=p.time?new Date(p.time).toLocaleString('ru-RU',{timeZone:'Europe/Moscow',day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+   const image=p.image?'<img class="articleImage" src="'+esc(p.image)+'" alt="">':'';
+   const paragraphs=esc(p.text||'Публикация FLARE').split(/\n+/).map(x=>x.trim()).filter(Boolean).map(x=>'<p>'+x+'</p>').join('');
+   root.innerHTML='<div class="articleMeta"><span>'+esc(cat)+'</span><time>'+esc(date)+'</time></div><h1>'+esc(p.text||'Новость FLARE')+'</h1>'+image+'<div class="articleBody">'+paragraphs+'</div><div class="articleFooter"><span>FLARE</span><a href="https://t.me/flare_itv/'+encodeURIComponent(p.id||'')+'" target="_blank" rel="noopener">Открыть оригинал в Telegram →</a></div>';
+   document.title=(String(p.text||'Новость').slice(0,70))+' — FLARE';
+ }
+ if(manual){
+   const arr=[{title:d.newsTitle,text:d.newsText,meta:d.newsTime||'FLARE',cat:'Главное'},{title:d.news2Title,text:d.news2Text,meta:'FLARE',cat:d.news2Category||'Новости'},{title:d.news3Title,text:d.news3Text,meta:'FLARE',cat:d.news3Category||'Новости'}];
+   const p=arr[index];
+   root.innerHTML='<div class="articleMeta"><span>'+esc(p.cat)+'</span><time>'+esc(p.meta)+'</time></div><h1>'+esc(p.title)+'</h1><div class="articleBody"><p>'+esc(p.text)+'</p></div><div class="articleFooter"><span>FLARE</span><a href="news.html">← Все новости</a></div>';
+   document.title=p.title+' — FLARE';
+   return;
+ }
+ if(!id){root.innerHTML='<div class="articleError">Новость не найдена.<br><a href="news.html">Вернуться к новостям →</a></div>';return;}
+ try{
+   const r=await fetch('/api/telegram?ts='+Date.now(),{cache:'no-store'});
+   if(!r.ok)throw new Error('API '+r.status);
+   const data=await r.json();
+   const p=(data.posts||[]).find(x=>String(x.id)===String(id));
+   if(!p)throw new Error('not found');
+   show(p);
+ }catch(e){
+   try{
+     const r=await fetch('data/telegram.json?ts='+Date.now(),{cache:'no-store'}); const data=await r.json();
+     const p=(data.posts||[]).find(x=>String(x.id)===String(id));
+     if(!p)throw new Error('not found'); show(p);
+   }catch(_){root.innerHTML='<div class="articleError"><h2>Не удалось загрузить новость</h2><p>Попробуйте обновить страницу или открыть оригинал в Telegram.</p><a class="redBtn" href="https://t.me/flare_itv" target="_blank" rel="noopener">Открыть Telegram FLARE →</a></div>';}
+ }
+})();
+</script>
+</body>
+</html>
