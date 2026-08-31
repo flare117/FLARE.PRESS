@@ -11,7 +11,7 @@ export default async function handler(req, res) {
       const dataMatch=block.match(/data-post="flare_itv\/(\d+)"/); if(!dataMatch) continue;
       const id=dataMatch[1];
       const textMatch=block.match(/<div class="tgme_widget_message_text[^>]*>([\s\S]*?)<\/div>/);
-      const text=textMatch?textMatch[1].replace(/<br\s*\/?>(?)/gi,'\n').replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/\s+/g,' ').trim():'Публикация FLARE';
+      const text=textMatch?textMatch[1].replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/\s+/g,' ').trim():'Публикация FLARE';
       const timeMatch=block.match(/<time[^>]+datetime="([^"]+)"/); const photoMatch=block.match(/background-image:url\('([^']+)'\)/);
       const hasVideo=/tgme_widget_message_video|<video\b|tgme_widget_message_document_video/.test(block);
       posts.push({id,text,time:timeMatch?timeMatch[1]:'',link:`https://t.me/flare_itv/${id}`,image:photoMatch?photoMatch[1].replace(/&amp;/g,'&'):'',hasVideo});
