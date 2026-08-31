@@ -1,0 +1,12 @@
+const KEY='flare:site-status';
+const LOGIN=process.env.FLARE_ADMIN_LOGIN||'flareitvadm';
+const PASSWORD=process.env.FLARE_ADMIN_PASSWORD||'flareitvadm';
+const REDIS_URL=process.env.UPSTASH_REDIS_REST_URL||process.env.KV_REST_API_URL||process.env.UPSTASH_REDIS_REST_ENDPOINT;
+const REDIS_TOKEN=process.env.UPSTASH_REDIS_REST_TOKEN||process.env.KV_REST_API_TOKEN;
+function ok(){return REDIS_URL&&REDIS_TOKEN}
+async function redis(command,args=[]){if(!ok())throw new Error('Upstash Redis is not connected');const r=await fetch(REDIS_URL,{method:'POST',headers:{Authorization:`Bearer ${REDIS_TOKEN}`,'Content-Type':'application/json'},body:JSON.stringify([command,...args])});if(!r.ok)throw new Error(`Redis HTTP ${r.status}`);const j=await r.json();if(j.error)throw new Error(j.error);return j.result}
+function cors(res){res.headers.set('Access-Control-Allow-Origin','*');res.headers.set('Access-Control-Allow-Headers','Content-Type,X-FLARE-Admin-Login,X-FLARE-Admin-Password');return res}
+export default async function handler(req,res){try{if(req.method==='OPTIONS'){res.status(204).setHeader('Access-Control-Allow-Origin','*').setHeader('Access-Control-Allow-Headers','Content-Type,X-FLARE-Admin-Login,X-FLARE-Admin-Password').end();return}
+if(req.method==='GET'){const raw=await redis('GET',[KEY]);const data=raw?JSON.parse(raw):{enabled:false,title:'Наш сайт на обновлении или просто отключён',text:'Друг (подруга), спасибо что заходишь на наш сайт.. Ноо, мы временно отключены или находимся на обновлении.\n\nПочитай пока новости там — t.me/flare_itv'};return cors(res.status(200).json(data))}
+if(req.method==='POST'){const login=req.headers['x-flare-admin-login'];const password=req.headers['x-flare-admin-password'];if(login!==LOGIN||password!==PASSWORD)return cors(res.status(401).json({error:'Unauthorized'}));const body=typeof req.body==='string'?JSON.parse(req.body):req.body||{};const data={enabled:!!body.enabled,title:String(body.title||'Наш сайт на обновлении или просто отключён'),text:String(body.text||'Друг (подруга), спасибо что заходишь на наш сайт.. Ноо, мы временно отключены или находимся на обновлении.\n\nПочитай пока новости там — t.me/flare_itv')};await redis('SET',[KEY,JSON.stringify(data)]);return cors(res.status(200).json({ok:true,...data}))}
+return cors(res.status(405).json({error:'Method not allowed'}));}catch(e){return cors(res.status(503).json({error:e.message}))}}
