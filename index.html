@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="FLARE — новости, прямой эфир, программы и телепрограмма телеканала.">
-<title>FLARE — телеканал</title><link rel="stylesheet" href="styles.css">
+<title>FLARE — телеканал</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="home-enhancements.css">
 </head>
 <body>
 <header class="top"><div class="wrap nav"><a class="logo" href="index.html" aria-label="FLARE">FLARE</a><nav><a href="#rates">Курс</a><a class="active" href="index.html">Главная</a><a href="news.html">Новости</a><a href="schedule.html">Телепрограмма</a><a href="programs.html">Программы</a><a href="about.html">О канале</a></nav><div class="navTools"><span class="city">Москва</span><button class="searchBtn" onclick="openSearch()" aria-label="Поиск">⌕</button></div></div></header>
@@ -24,9 +24,7 @@
 <script src="script.js"></script>
 <script>
 function moveNews(dir){const el=document.getElementById('telegramNewsHome');if(!el)return;const card=el.querySelector('.telegramCard');const step=card?card.getBoundingClientRect().width+18:320;el.scrollBy({left:dir*step,behavior:'smooth'})}
-const flareWeatherCities=[
- ['Москва',55.7558,37.6173],['Химки',55.8970,37.4297],['Красногорск',55.8310,37.3300],['Мытищи',55.9105,37.7360],['Балашиха',55.7963,37.9382],['Королёв',55.9228,37.8544],['Подольск',55.4312,37.5458],['Люберцы',55.6760,37.8981],['Одинцово',55.6780,37.2770],['Раменское',55.5671,38.2304],['Щёлково',55.9202,38.0008],['Коломна',55.0952,38.7656],['Сергиев Посад',56.3153,38.1353],['Дмитров',56.3440,37.5208],['Ногинск',55.8540,38.4410],['Электросталь',55.7844,38.4448]
-];
+const flareWeatherCities=[['Москва',55.7558,37.6173],['Химки',55.8970,37.4297],['Красногорск',55.8310,37.3300],['Мытищи',55.9105,37.7360],['Балашиха',55.7963,37.9382],['Королёв',55.9228,37.8544],['Подольск',55.4312,37.5458],['Люберцы',55.6760,37.8981],['Одинцово',55.6780,37.2770],['Раменское',55.5671,38.2304],['Щёлково',55.9202,38.0008],['Коломна',55.0952,38.7656],['Сергиев Посад',56.3153,38.1353],['Дмитров',56.3440,37.5208],['Ногинск',55.8540,38.4410],['Электросталь',55.7844,38.4448]];
 function weatherIcon(code){if(code===0)return'☀️';if(code<=3)return'⛅';if(code<=48)return'🌫️';if(code<=67)return'🌧️';if(code<=77)return'❄️';if(code<=82)return'🌦️';return'⛈️'}
 async function loadFlareWeather(){const grid=document.getElementById('weatherGrid'),updated=document.getElementById('weatherUpdated');if(!grid)return;try{const lats=flareWeatherCities.map(x=>x[1]).join(','),lons=flareWeatherCities.map(x=>x[2]).join(',');const url='https://api.open-meteo.com/v1/forecast?latitude='+encodeURIComponent(lats)+'&longitude='+encodeURIComponent(lons)+'&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=Europe%2FMoscow';const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('weather '+r.status);const data=await r.json(),arr=Array.isArray(data)?data:[data];grid.innerHTML=arr.map((w,i)=>{const c=flareWeatherCities[i],t=Math.round(w.current.temperature_2m),feel=Math.round(w.current.apparent_temperature),wind=Math.round(w.current.wind_speed_10m);return '<div class="weatherCard"><div class="weatherCity">'+c[0]+'</div><div class="weatherMain"><span class="weatherIcon">'+weatherIcon(w.current.weather_code)+'</span><b>'+((t>0)?'+':'')+t+'°</b></div><div class="weatherMeta">Ощущается '+((feel>0)?'+':'')+feel+'° · ветер '+wind+' м/с</div></div>'}).join('');const now=new Date();updated.textContent='Обновлено '+now.toLocaleTimeString('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit'})+' МСК';}catch(e){grid.innerHTML='<div class="weatherLoading">Не удалось загрузить погоду. Попробуйте обновить страницу.</div>';updated.textContent='Временно недоступно'}}
 loadFlareWeather();setInterval(loadFlareWeather,3600000);
