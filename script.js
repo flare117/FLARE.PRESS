@@ -1,5 +1,5 @@
 const items=[['Главные события дня: что важно знать прямо сейчас','Новости','news.html'],['Что изменится этой осенью','Общество','news.html'],['Новые технологии меняют привычный эфир','Технологии','news.html'],['FLARE. Новости','Программа','programs.html'],['Истории города','Программа','programs.html'],['Дайджест','Программа','programs.html'],['Телепрограмма FLARE','Эфир','schedule.html']];
-const DEFAULT_FLARE={liveEnabled:false,vkUrl:'',onairTitle:'FLARE. Новости',onairText:'Главные события дня — коротко и по делу.',newsTitle:'Главные события дня: что важно знать прямо сейчас',newsText:'Короткие новости, важные события и комментарии редакции FLARE.',newsTime:'СЕГОДНЯ · 10:15',news2Title:'Что изменится этой осенью',news3Title:'Новые технологии меняют привычный эфир',sch1Title:'FLARE. Новости',sch2Title:'Истории города',sch3Title:'Дайджест',sch4Title:'FLARE. Погода',aboutText:'FLARE — интернет-телеканал нового формата: новости, программы, прямые трансляции и важные события.',aboutYear:'2026'};
+const DEFAULT_FLARE={liveEnabled:false,vkUrl:'',onairTitle:'FLARE. Новости',onairText:'Главные события дня — коротко и по делу.',newsSource:'telegram',newsTitle:'Главные события дня: что важно знать прямо сейчас',newsText:'Короткие новости, важные события и комментарии редакции FLARE.',newsTime:'СЕГОДНЯ · 10:15',news2Title:'Что изменится этой осенью',news2Text:'Главные изменения и события дня.',news3Title:'Новые технологии меняют привычный эфир',news3Text:'Главное из мира технологий.',sch1Title:'FLARE. Новости',sch2Title:'Истории города',sch3Title:'Дайджест',sch4Title:'FLARE. Погода',aboutText:'FLARE — интернет-телеканал нового формата: новости, программы, прямые трансляции и важные события.',aboutYear:'2026'};
 function flareData(){try{return {...DEFAULT_FLARE,...JSON.parse(localStorage.getItem('flareData')||'{}')}}catch{return {...DEFAULT_FLARE}}}
 function applyFlareData(){const d=flareData();Object.entries(d).forEach(([k,v])=>{document.querySelectorAll('#'+k).forEach(e=>{if(e.tagName==='INPUT'||e.tagName==='TEXTAREA')e.value=v;else e.textContent=v})}); const wrap=document.getElementById('vkPlayerWrap'), iframe=document.getElementById('vkPlayer'), off=document.getElementById('offlineState'); if(wrap&&iframe&&off){if(d.liveEnabled&&d.vkUrl){iframe.src=d.vkUrl;wrap.hidden=false;off.hidden=true}else{iframe.removeAttribute('src');wrap.hidden=true;off.hidden=false}}}
 function openSearch(){const s=document.getElementById('search');if(!s)return;s.classList.add('open');const q=document.getElementById('q');q.value='';q.focus();searchSite()}
@@ -11,26 +11,52 @@ applyFlareData();updateClock();setInterval(updateClock,1000);document.addEventLi
 function renderFlareRates(){const d=flareData();document.querySelectorAll('[data-rate]').forEach(e=>{const v=d['rate'+e.dataset.rate];e.textContent=v?Number(v).toLocaleString('ru-RU',{maximumFractionDigits:4})+' ₽':'—'});document.querySelectorAll('[data-rate-date]').forEach(e=>e.textContent=d.rateUpdated||'Курс в админ-панели');}
 renderFlareRates();
 
+function renderManualNews(target, d){
+  const esc=x=>String(x||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const cards=[
+    {title:d.newsTitle,text:d.newsText,meta:d.newsTime||'FLARE',cat:'Главное'},
+    {title:d.news2Title,text:d.news2Text,meta:'FLARE',cat:d.news2Category||'Новости'},
+    {title:d.news3Title,text:d.news3Text,meta:'FLARE',cat:d.news3Category||'Новости'}
+  ];
+  target.innerHTML=cards.map(p=>`<article class="telegramCard"><div class="telegramCardTop"><span>${esc(p.cat)}</span><time>${esc(p.meta)}</time></div><h3>${esc(p.title)}</h3><p>${esc(p.text)}</p><div class="telegramCardBottom"><span>FLARE</span><a href="news.html">Подробнее →</a></div></article>`).join('');
+}
 async function loadTelegramNews(){
   const targets=[document.getElementById('telegramNewsHome'),document.getElementById('telegramNewsPage')].filter(Boolean);
   if(!targets.length)return;
+  const d=flareData();
+  if(d.newsSource==='manual'){targets.forEach(t=>renderManualNews(t,d));return;}
+  const renderEmpty=(message='Пока нет свежих публикаций.')=>targets.forEach(t=>t.innerHTML=`<div class="telegramEmpty">${message} <a href="https://t.me/flare_itv" target="_blank" rel="noopener">Открыть Telegram FLARE →</a></div>`);
+  const renderPosts=(posts)=>targets.forEach(target=>{
+    if(!posts.length){renderEmpty();return;}
+    const limit=target.id==='telegramNewsHome'?3:9;
+    target.innerHTML=posts.slice(0,limit).map(p=>{const safeText=String(p.text||'Медиа-публикация FLARE').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const date=p.time?new Date(p.time).toLocaleString('ru-RU',{timeZone:'Europe/Moscow',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';const link=String(p.link||'https://t.me/flare_itv');return `<article class="telegramCard"><div class="telegramCardTop"><span>FLARE · TELEGRAM</span><time>${date}</time></div><h3>${safeText}</h3><div class="telegramCardBottom"><span>${p.views||''}</span><a href="${link}" target="_blank" rel="noopener">Читать в Telegram →</a></div></article>`}).join('');
+  });
   try{
-    const res=await fetch('data/telegram.json?'+Date.now(),{cache:'no-store'});
-    if(!res.ok)throw new Error('feed');
-    const data=await res.json();
-    const posts=Array.isArray(data.posts)?data.posts:[];
-    targets.forEach(target=>{
-      if(!posts.length){target.innerHTML='<div class="telegramEmpty">Пока нет публикаций. <a href="https://t.me/flare_itv" target="_blank" rel="noopener">Открыть Telegram FLARE →</a></div>';return;}
-      const limit=target.id==='telegramNewsHome'?3:9;
-      target.innerHTML=posts.slice(0,limit).map(p=>{
-        const safeText=(p.text||'Медиа-публикация FLARE').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-        const date=p.time?new Date(p.time).toLocaleString('ru-RU',{timeZone:'Europe/Moscow',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
-        return `<article class="telegramCard"><div class="telegramCardTop"><span>FLARE · TELEGRAM</span><time>${date}</time></div><h3>${safeText}</h3><div class="telegramCardBottom"><span>${p.views||''}</span><a href="${p.link}" target="_blank" rel="noopener">Читать в Telegram →</a></div></article>`;
-      }).join('');
-    });
+    const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),8000);
+    const rss=await fetch('https://rsshub.app/telegram/channel/flare_itv?ts='+Date.now(),{cache:'no-store',signal:controller.signal}); clearTimeout(timer);
+    if(!rss.ok)throw new Error('RSS HTTP '+rss.status);
+    const xml=await rss.text();
+    const doc=new DOMParser().parseFromString(xml,'text/xml');
+    const posts=[...doc.querySelectorAll('item')].map(item=>({
+      text:item.querySelector('description')?.textContent?.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim()||item.querySelector('title')?.textContent||'Публикация FLARE',
+      time:item.querySelector('pubDate')?.textContent||'',
+      link:item.querySelector('link')?.textContent||'https://t.me/flare_itv',
+      views:''
+    }));
+    renderPosts(posts);
   }catch(e){
-    targets.forEach(target=>target.innerHTML='<div class="telegramEmpty">Не удалось загрузить ленту. <a href="https://t.me/flare_itv" target="_blank" rel="noopener">Открыть @flare_itv →</a></div>');
+    try{
+      const res=await fetch('data/telegram.json?ts='+Date.now(),{cache:'no-store'});
+      if(!res.ok)throw new Error('fallback');
+      const data=await res.json(); renderPosts(Array.isArray(data.posts)?data.posts:[]);
+    }catch(_){ renderEmpty('Лента Telegram временно недоступна.'); }
   }
 }
+function applyDynamicScheduleAndPrograms(){
+ const d=flareData();
+ const map=['onairTitle','onairText','sch1Title','sch2Title','sch3Title','sch4Title','nextTitle','nextTime','program1Title','program1Text','program2Title','program2Text','program3Title','program3Text'];
+ map.forEach(id=>document.querySelectorAll('#'+id).forEach(e=>e.textContent=d[id]??e.textContent));
+}
+applyDynamicScheduleAndPrograms();
 loadTelegramNews();
 
