@@ -11,10 +11,11 @@ function countdownText(){const diff=Math.max(0,new Date(MAINTENANCE_UNTIL).getTi
 function updateMaintenancePreview(){const e=document.getElementById('maintenanceCountdown');if(e)e.textContent=countdownText()}
 async function saveMaintenance(data){
   try{
-    const r=await fetch('/api/site-status',{method:'POST',headers:{'Content-Type':'application/json','X-FLARE-Admin-Login':ADMIN_LOGIN,'X-FLARE-Admin-Password':ADMIN_PASSWORD},body:JSON.stringify({enabled:!!data.maintenanceEnabled,title:data.maintenanceTitle||DEFAULTS.maintenanceTitle,text:data.maintenanceText||DEFAULTS.maintenanceText,expiresAt:data.maintenanceUntil||MAINTENANCE_UNTIL})});
+    const payload={enabled:!!data.maintenanceEnabled,title:data.maintenanceTitle||DEFAULTS.maintenanceTitle,text:data.maintenanceText||DEFAULTS.maintenanceText,expiresAt:Object.prototype.hasOwnProperty.call(data,'maintenanceUntil')?data.maintenanceUntil:MAINTENANCE_UNTIL};
+    const r=await fetch('/api/site-status',{method:'POST',headers:{'Content-Type':'application/json','X-FLARE-Admin-Login':ADMIN_LOGIN,'X-FLARE-Admin-Password':ADMIN_PASSWORD},body:JSON.stringify(payload)});
     const j=await r.json();
     const s=document.getElementById('maintenanceStatus');
-    if(s)s.textContent=r.ok?(j.enabled?'Сайт отключён для всех посетителей до 06:00 1 сентября':'Сайт снова включён'):'Ошибка сервера: '+(j.error||r.status);
+    if(s)s.textContent=r.ok?(j.enabled?(j.expiresAt?'Сайт отключён для всех посетителей до 06:00 1 сентября':'Сайт отключён для всех посетителей без таймера'):'Сайт снова включён'):'Ошибка сервера: '+(j.error||r.status);
     if(s)setTimeout(()=>s.textContent='',6000);
     return r.ok;
   }catch(e){const s=document.getElementById('maintenanceStatus');if(s)s.textContent='Не удалось связаться с сервером';return false}
@@ -26,14 +27,24 @@ async function activateMaintenance(){
   setVal('maintenanceEnabled',true);setVal('maintenanceTitle',d.maintenanceTitle);setVal('maintenanceText',d.maintenanceText);setVal('maintenanceUntil',MAINTENANCE_UNTIL);
   const ok=await saveMaintenance(d);const s=document.getElementById('maintenanceStatus');if(s&&!ok)s.textContent='Не удалось включить режим обновления';
 }
+async function activatePermanentMaintenance(){
+  const d=getData();
+  d.maintenanceEnabled=true;
+  d.maintenanceTitle='FLARE — сайт отключён на проведение работ';
+  d.maintenanceText='Сайт временно отключён на обновление. Следите за новостями в Telegram — t.me/flare_itv';
+  d.maintenanceUntil=null;
+  localStorage.setItem('flareData',JSON.stringify(d));
+  setVal('maintenanceEnabled',true);setVal('maintenanceTitle',d.maintenanceTitle);setVal('maintenanceText',d.maintenanceText);setVal('maintenanceUntil','');
+  const ok=await saveMaintenance(d);const s=document.getElementById('maintenanceStatus');if(s&&!ok)s.textContent='Не удалось включить обычное отключение';
+}
 async function disableMaintenance(){
-  const d=getData();d.maintenanceEnabled=false;localStorage.setItem('flareData',JSON.stringify(d));setVal('maintenanceEnabled',false);await saveMaintenance(d);
+  const d=getData();d.maintenanceEnabled=false;localStorage.setItem('flareData',JSON.stringify(d));setVal('maintenanceEnabled',false);await saveMaintenance({...d,maintenanceUntil:d.maintenanceUntil||null});
 }
 async function loadMaintenance(){
   try{
     const r=await fetch('/api/site-status',{cache:'no-store'}),j=await r.json();
-    setVal('maintenanceEnabled',j.enabled);setVal('maintenanceTitle',j.title);setVal('maintenanceText',j.text);setVal('maintenanceUntil',j.expiresAt||MAINTENANCE_UNTIL);
-    const s=document.getElementById('maintenanceStatus');if(s)s.textContent=j.enabled?'Сейчас сайт ОТКЛЮЧЁН до 06:00 1 сентября':'Сейчас сайт ВКЛЮЧЁН';
+    setVal('maintenanceEnabled',j.enabled);setVal('maintenanceTitle',j.title);setVal('maintenanceText',j.text);setVal('maintenanceUntil',j.expiresAt||'');
+    const s=document.getElementById('maintenanceStatus');if(s)s.textContent=j.enabled?(j.expiresAt?'Сейчас сайт ОТКЛЮЧЁН до 06:00 1 сентября':'Сейчас сайт ОТКЛЮЧЁН без таймера'):'Сейчас сайт ВКЛЮЧЁН';
   }catch{const s=document.getElementById('maintenanceStatus');if(s)s.textContent='Серверное хранилище недоступно'}
 }
 function addMaintenanceTab(){
@@ -41,10 +52,11 @@ function addMaintenanceTab(){
   const tabs=document.querySelector('.adminTabs');
   const btn=document.createElement('button');btn.className='adminTab';btn.dataset.tab='maintenanceTab';btn.textContent='🛠️ Обновление';tabs.appendChild(btn);
   const panel=document.createElement('section');panel.id='maintenanceTab';panel.className='adminTabPanel';
-  panel.innerHTML=`<div class="adminGrid"><section class="adminCard wide maintenanceCard"><span class="eyebrow">FLARE / SITE MAINTENANCE</span><h2>Выключение сайта на обновление</h2><p class="muted">Отдельный режим для технических работ. При включении обычные страницы сайта будут возвращать <b>404</b> и посетитель увидит страницу обновления.</p><div class="maintenanceBox"><div class="maintenanceStatusTitle">До окончания работ</div><div id="maintenanceCountdown" class="maintenanceCountdown">00 дн. 00:00:00</div><div class="maintenanceUntilLabel">1 сентября 2026 · 06:00 по Москве</div></div><label class="check"><input type="checkbox" id="maintenanceEnabled"> Включить режим обновления</label><label>Заголовок<input id="maintenanceTitle"></label><label>Текст<textarea id="maintenanceText"></textarea></label><input id="maintenanceUntil" type="hidden" value="${MAINTENANCE_UNTIL}"><div class="maintenanceButtons"><button class="redBtn" id="enableMaintenance" type="button">Отключить сайт до 06:00 1 сентября</button><button class="ghostAdmin" id="disableMaintenance" type="button">Включить сайт обратно</button></div><div id="maintenanceStatus" class="saved"></div></section></div>`;
+  panel.innerHTML=`<div class="adminGrid"><section class="adminCard wide maintenanceCard"><span class="eyebrow">FLARE / SITE MAINTENANCE</span><h2>Выключение сайта</h2><p class="muted">Здесь находятся два независимых режима. Старый режим с таймером не удалён.</p><div class="maintenanceBox"><div class="maintenanceStatusTitle">До окончания плановых работ</div><div id="maintenanceCountdown" class="maintenanceCountdown">00 дн. 00:00:00</div><div class="maintenanceUntilLabel">1 сентября 2026 · 06:00 по Москве</div></div><label class="check"><input type="checkbox" id="maintenanceEnabled"> Сайт отключён</label><label>Заголовок<input id="maintenanceTitle"></label><label>Текст<textarea id="maintenanceText"></textarea></label><input id="maintenanceUntil" type="hidden" value="${MAINTENANCE_UNTIL}"><div class="maintenanceButtons"><button class="redBtn" id="enableMaintenance" type="button">🛠️ Отключить до 06:00 1 сентября</button><button class="redBtn" id="enablePermanentMaintenance" type="button">⛔ Обычное отключение / обновление</button><button class="ghostAdmin" id="disableMaintenance" type="button">Включить сайт обратно</button></div><div id="maintenanceStatus" class="saved"></div></section></div>`;
   document.getElementById('panel').appendChild(panel);
   btn.addEventListener('click',()=>{document.querySelectorAll('.adminTab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.adminTabPanel').forEach(x=>x.classList.remove('active'));btn.classList.add('active');panel.classList.add('active');updateMaintenancePreview()});
   document.getElementById('enableMaintenance').onclick=activateMaintenance;
+  document.getElementById('enablePermanentMaintenance').onclick=activatePermanentMaintenance;
   document.getElementById('disableMaintenance').onclick=disableMaintenance;
   updateMaintenancePreview();setInterval(updateMaintenancePreview,1000);
 }
