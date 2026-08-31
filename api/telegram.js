@@ -14,6 +14,12 @@ export default async function handler(req, res) {
     const posts = [];
     const blocks = html.split('tgme_widget_message_wrap').slice(1);
 
+    const decodeHtml = value => String(value || '')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&#x27;/g, "'");
+
     for (const block of blocks.slice(-12)) {
       const dataMatch = block.match(/data-post="flare_itv\/(\d+)"/);
       if (!dataMatch) continue;
@@ -42,9 +48,14 @@ export default async function handler(req, res) {
 
       const timeMatch = block.match(/<time[^>]+datetime="([^"]+)"/);
       const photoMatch = block.match(/background-image:url\('([^']+)'\)/);
-      const videoMatch = block.match(/<video[^>]+src="([^"]+)"[^>]*>/i);
-      const videoUrl = videoMatch ? videoMatch[1].replace(/&amp;/g, '&') : '';
-      const hasVideo = Boolean(videoUrl) || /tgme_widget_message_video|tgme_widget_message_document_video/.test(block);
+
+      // Telegram puts the playable media URL in the public post HTML.
+      // Extract it so the site's native <video> player can play the file directly.
+      const videoSrcMatch = block.match(/<video[^>]+(?:src|data-src)=["']([^"']+)["']/i)
+        || block.match(/<source[^>]+src=["']([^"']+)["']/i)
+        || block.match(/data-video="([^"]+)"/i);
+      const videoUrl = videoSrcMatch ? decodeHtml(videoSrcMatch[1]) : '';
+      const hasVideo = !!videoUrl || /tgme_widget_message_video|tgme_widget_message_document_video|<video\b/i.test(block);
 
       posts.push({
         id,
@@ -53,7 +64,7 @@ export default async function handler(req, res) {
         body,
         time: timeMatch ? timeMatch[1] : '',
         link: `https://t.me/flare_itv/${id}`,
-        image: photoMatch ? photoMatch[1].replace(/&amp;/g, '&') : '',
+        image: photoMatch ? decodeHtml(photoMatch[1]) : '',
         hasVideo,
         videoUrl
       });
