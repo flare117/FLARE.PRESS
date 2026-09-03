@@ -8,21 +8,4 @@
 .rateGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.rateActions{display:flex;align-items:center;gap:14px;margin-top:16px}.wide{grid-column:1/-1}
 @media(max-width:700px){.rateGrid{grid-template-columns:1fr}.adminTabs{overflow:auto;flex-wrap:nowrap}.adminTab{white-space:nowrap}}
 .ratesSection{padding:28px 0 60px}.rateCards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}.rateCard{padding:18px;border:1px solid rgba(255,255,255,.1);border-radius:16px;background:rgba(255,255,255,.045)}.rateCard span{display:block;color:#999;font-size:13px}.rateCard b{display:block;margin-top:7px;font-size:20px}.ratesSection small{display:block;margin-top:12px;color:#777}@media(max-width:900px){.rateCards{grid-template-columns:repeat(3,1fr)}}@media(max-width:600px){.rateCards{grid-template-columns:repeat(2,1fr)}}
-/* FLARE Telegram news redesign */
-.telegramFeed{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:start}
-.telegramFeedPage{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
-.telegramCard{min-width:0;background:#fff;border:1px solid #e5e5e8;border-radius:16px;overflow:hidden;box-shadow:0 7px 24px rgba(0,0,0,.055);transition:transform .18s ease,box-shadow .18s ease;display:flex;flex-direction:column}
-.telegramCard:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,0,0,.09)}
-.telegramImage{display:block;width:100%;height:175px;object-fit:cover;object-position:center;background:#ececef}
-.telegramCardTop{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px 0;color:#8a8b90;font-size:10px;font-weight:850;letter-spacing:.055em;text-transform:uppercase}
-.telegramCardTop span{color:#e31b23;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.telegramCardTop time{white-space:nowrap;color:#9b9ca1;font-weight:700;letter-spacing:0;text-transform:none}
-.telegramCard h3{font-size:17px;line-height:1.28;letter-spacing:-.25px;margin:9px 16px 0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;min-height:65px}
-.telegramCardBottom{margin-top:auto;padding:15px 16px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #f0f0f2}
-.telegramCardBottom span{font-size:10px;font-weight:900;letter-spacing:.08em;color:#999}
-.telegramCardBottom a{font-size:11px;font-weight:850;color:#e31b23;white-space:nowrap}
-.telegramCard:not(:has(.telegramImage)){min-height:190px}
-.telegramEmpty,.telegramLoading{grid-column:1/-1;background:#fff;border:1px solid #e1e1e5;border-radius:16px;padding:28px;text-align:center;color:#777}
-.telegramEmpty a{color:#e31b23;font-weight:800}
-@media(max-width:950px){.telegramFeed,.telegramFeedPage{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:620px){.telegramFeed,.telegramFeedPage{grid-template-columns:1fr;gap:14px}.telegramImage{height:190px}.telegramCard h3{font-size:16px}}
+.siteFooter{margin-top:0;background:#171929;color:#fff;padding:48px 0 26px}.siteFooterGrid{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:70px;padding-bottom:36px}.footerBrand,.footerNav,.footerContacts{display:flex;flex-direction:column;align-items:flex-start}.footerLogo{font-size:56px;line-height:.9;font-weight:950;letter-spacing:-4.8px}.footerBrand p{margin:13px 0 0;color:#a4a7b6;font-size:15px;line-height:1.5}.footerNav b,.footerContacts b{font-size:15px;letter-spacing:.04em;margin:4px 0 16px}.footerNav a{color:#9fa3b4;margin:0 0 11px;font-size:15px;transition:color .2s}.footerNav a:hover{color:#fff}.footerContacts span{color:#9fa3b4;font-size:14px;line-height:1.55;margin-bottom:9px}.footerContacts a{color:#fff;font-size:17px;font-weight:850}.footerPrivacy{max-width:760px;text-align:center;background:rgba(10,11,20,.32);border:1px solid rgba(255,255,255,.025);border-radius:12px;padding:18px 28px;margin:0 auto 28px;box-shadow:0 10px 35px rgba(0,0,0,.08)}.footerPrivacy b{display:block;font-size:13px;letter-spacing:.05em;margin-bottom:9px}.footerPrivacy p{margin:0;color:#868b9b;font-size:13px;line-height:1.55}.siteCopy{width:min(1180px,calc(100% - 40px));margin:auto;padding-top:22px;border-top:1px solid rgba(255,255,255,.055);text-align:center;color:#858999;font-size:12px;font-weight:700;letter-spacing:.02em}@media(max-width:850px){.siteFooter{padding:40px 0 22px}.siteFooterGrid{grid-template-columns:1fr;gap:30px;padding-bottom:30px}.footerLogo{font-size:48px}.footerPrivacy{padding:17px 18px}.siteCopy{width:min(100% - 28px,1180px)}}
