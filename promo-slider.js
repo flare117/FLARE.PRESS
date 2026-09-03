@@ -3,7 +3,13 @@ const flarePromoSlides = [
     title: 'ГЛАВНЫЕ НОВОСТИ ВСЕГДА ПОД РУКОЙ',
     text: 'Подписывайтесь на наш канал в Телеграм',
     button: 'Подробнее',
-    link: 'https://t.me/managerflareof'
+    link: 'https://t.me/flare_itv'
+  },
+  {
+    title: 'САЙТ СНОВА РАБОТАЕТ',
+    text: 'FLARE.Press снова доступен. Следите за новостями и обновлениями.',
+    button: 'Подробнее',
+    link: 'https://t.me/flare_itv'
   },
   {
     title: 'СОТРУДНИЧАЙТЕ С FLARE',
