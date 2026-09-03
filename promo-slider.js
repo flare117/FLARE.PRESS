@@ -6,12 +6,6 @@ const flarePromoSlides = [
     link: 'https://t.me/flare_itv'
   },
   {
-    title: 'САЙТ СНОВА РАБОТАЕТ',
-    text: 'FLARE.Press снова доступен. Следите за новостями и обновлениями.',
-    button: 'Подробнее',
-    link: 'https://t.me/flare_itv'
-  },
-  {
     title: 'СОТРУДНИЧАЙТЕ С FLARE',
     text: 'Реклама, сотрудничество и ваши новости — пишите менеджеру.',
     button: 'Подробнее',
