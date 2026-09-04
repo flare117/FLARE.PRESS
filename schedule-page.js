@@ -1,5 +1,16 @@
 (()=>{
-async function init(){try{const r=await fetch('/api/schedule?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;const d=await r.json();for(let i=1;i<=6;i++){['Category','Time','Title','Text'].forEach(k=>{const e=document.getElementById(`sch${i}${k}`);if(e&&d[`sch${i}${k}`]!==undefined)e.textContent=d[`sch${i}${k}`]})}const first=document.getElementById('sch1Text');if(first&&d.sch1Text)first.textContent=d.sch1Text}catch(e){console.warn('Schedule load failed',e)}}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
-setInterval(init,60000);
+const DAYS=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+const MONTHS=['ЯНВ','ФЕВ','МАР','АПР','МАЙ','ИЮН','ИЮЛ','АВГ','СЕН','ОКТ','НОЯ','ДЕК'];
+const fallback=[
+['10:00','FLARE. Новости','Новости','Главные события дня, коротко и по делу.',''],['10:25','Истории города','Общество','Люди, места и события, которые формируют город.',''],['11:00','Дайджест','Дайджест','Самое важное за час — без лишнего.',''],['11:30','FLARE. Погода','Погода','Погода в Москве и регионах.',''],['12:00','Новости','Новости','Дневной выпуск новостей FLARE.',''],['12:30','FLARE. Интервью','Интервью','Разговоры с гостями и героями дня.','']
+];
+let data={};let filter='all';let selectedDay=0;
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function card(p,i){const img=p.image||'';return `<article class="programRow ${i===0?'current':''}"><time>${esc(p.time)}</time><div class="programCover" ${img?`style="background-image:url('${esc(img)}')"`:''}><span>${esc(p.title)}</span></div><div class="programInfo"><div class="programMeta">${i===0?'<span class="liveBadge">СЕЙЧАС</span>':''}<span>${esc(p.category)}</span></div><h2>${esc(p.title)}</h2><p>${esc(p.description)}</p></div><a class="episodes" href="programs.html">Подробнее</a></article>`}
+function getPrograms(){const arr=[];for(let i=1;i<=12;i++){const p={time:data[`sch${i}Time`],title:data[`sch${i}Title`],category:data[`sch${i}Category`],description:data[`sch${i}Text`],image:data[`sch${i}Image`]};if(p.time||p.title||p.description||p.image)arr.push(p)}return arr.length?arr:fallback.map(x=>({time:x[0],title:x[1],category:x[2],description:x[3],image:x[4]}))}
+function render(){const list=document.getElementById('scheduleList');if(!list)return;let ps=getPrograms();if(filter==='morning')ps=ps.filter(p=>(p.time||'00:00')<'12:00');if(filter==='evening')ps=ps.filter(p=>(p.time||'00:00')>='17:00');if(filter==='now'&&ps.length)ps=ps.slice(0,1);list.innerHTML=ps.map(card).join('')||'<div class="scheduleEmpty">На выбранный период программ нет.</div>'}
+function dates(){const now=new Date();for(let n=0;n<=6;n++){const d=new Date(now);d.setDate(now.getDate()+n);const dd=String(d.getDate()).padStart(2,'0');const value=`${dd} ${MONTHS[d.getMonth()]}`;const el=document.getElementById(n===0?'todayDate':`date${n}`);if(el)el.textContent=value;if(n>1){const dow=document.getElementById(`dow${n}`);if(dow)dow.textContent=DAYS[d.getDay()]}}}
+async function init(){dates();try{const r=await fetch('/api/schedule?ts='+Date.now(),{cache:'no-store'});if(r.ok)data=await r.json()}catch(e){console.warn('Schedule load failed',e)}render()}
+document.addEventListener('click',e=>{const day=e.target.closest('.day');if(day){document.querySelectorAll('.day').forEach(x=>x.classList.remove('active'));day.classList.add('active');selectedDay=day.dataset.day;render()}const f=e.target.closest('.filter');if(f){document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));f.classList.add('active');filter=f.dataset.filter;render()}});
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();setInterval(init,60000);
 })();
