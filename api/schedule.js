@@ -1,22 +1,12 @@
 import { isAdminRequest } from './admin-auth.js';
 
 const KEY = 'flare:schedule';
-const LOGIN = process.env.FLARE_WORKER_LOGIN || 'flareworker';
-const PASSWORD = process.env.FLARE_WORKER_PASSWORD || 'flareworker';
+const LOGIN = process.env.FLARE_WORKER_LOGIN || '';
+const PASSWORD = process.env.FLARE_WORKER_PASSWORD || '';
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_ENDPOINT;
 const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 
-async function redis(command, args = []) {
-  if (!REDIS_URL || !REDIS_TOKEN) throw new Error('Upstash Redis is not connected');
-  const r = await fetch(REDIS_URL, {
-    method: 'POST', headers: { Authorization: `Bearer ${REDIS_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify([command, ...args]), cache: 'no-store'
-  });
-  if (!r.ok) throw new Error(`Redis HTTP ${r.status}`);
-  const j = await r.json(); if (j.error) throw new Error(j.error); return j.result;
-}
-
-const defaults = {
+const defaults={
   liveEnabled:false,vkUrl:'',onairTitle:'FLARE. Новости',onairText:'Главные события дня — коротко и по делу.',nextTitle:'Истории города',nextTime:'10:25',scheduleData:[],
   sch1Time:'10:00',sch1Title:'FLARE. Новости',sch1Category:'Новости',sch1Text:'Главные события дня, коротко и по делу.',sch1Image:'',
   sch2Time:'10:25',sch2Title:'Истории города',sch2Category:'Общество',sch2Text:'Люди, места и события города.',sch2Image:'',
@@ -31,45 +21,24 @@ const defaults = {
   sch11Time:'19:00',sch11Title:'Новости',sch11Category:'Новости',sch11Text:'Вечерний выпуск новостей FLARE.',sch11Image:'',
   sch12Time:'21:00',sch12Title:'Прямой эфир',sch12Category:'Эфир',sch12Text:'События в реальном времени.',sch12Image:'',
   newsSource:'telegram',newsTitle:'Главные события дня: что важно знать прямо сейчас',newsText:'Короткие новости, важные события и комментарии редакции FLARE.',newsTime:'СЕГОДНЯ · 10:15',news2Title:'Что изменится этой осенью',news2Text:'Главные изменения и события дня.',news2Category:'Общество',news3Title:'Новые технологии меняют привычный эфир',news3Text:'Главное из мира технологий.',news3Category:'Технологии',
-  aboutText:'FLARE — интернет-телеканал нового формата: новости, программы, прямые трансляции и важные события.',aboutYear:'2026',program1Title:'Дайджест',program1Text:'Самое важное за день',program2Title:'FLARE. Новости',program2Text:'Оперативно и без лишнего',program3Title:'Прямой эфир',program3Text:'События в реальном времени',
-  rateUSD:92.5,rateEUR:107.8,rateGold:10450,rateSilver:145,ratePlatinum:4200,ratePalladium:3800,rateUpdated:''
+  aboutText:'FLARE — интернет-телеканал нового формата: новости, программы, прямые трансляции и важные события.',aboutYear:'2026',program1Title:'Дайджест',program1Text:'Самое важное за день',program2Title:'FLARE. Новости',program2Text:'Оперативно и без лишнего',program3Title:'Прямой эфир',program3Text:'События в реальном времени',rateUSD:92.5,rateEUR:107.8,rateGold:10450,rateSilver:145,ratePlatinum:4200,ratePalladium:3800,rateUpdated:''
 };
 
-function cors(res){res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Access-Control-Allow-Headers','Content-Type, X-FLARE-Worker-Login, X-FLARE-Worker-Password, X-FLARE-Admin-Login, X-FLARE-Admin-Password');res.setHeader('Access-Control-Allow-Methods','GET,POST,OPTIONS');res.setHeader('Cache-Control','no-store');return res;}
-function send(res,status,body){cors(res);return res.status(status).json(body);}
-function authorized(req){return isAdminRequest(req)||((req.headers['x-flare-worker-login']||'')===LOGIN&&(req.headers['x-flare-worker-password']||'')===PASSWORD);}
-
-function cleanSchedule(value){
-  if(!Array.isArray(value))return [];
-  return Array.from({length:7},(_,di)=>Array.from({length:12},(_,i)=>{
-    const p=Array.isArray(value[di])?value[di][i]:null;
-    if(!p||typeof p!=='object')return {time:'',title:'',category:'',description:'',image:''};
-    return {time:String(p.time??''),title:String(p.title??''),category:String(p.category??''),description:String(p.description??''),image:String(p.image??'')};
-  }));
-}
-
+function setHeaders(res){if(res.headersSent)return;res.setHeader('Access-Control-Allow-Origin','same-origin');res.setHeader('Access-Control-Allow-Headers','Content-Type, X-FLARE-Worker-Login, X-FLARE-Worker-Password');res.setHeader('Access-Control-Allow-Methods','GET,POST,OPTIONS');res.setHeader('Cache-Control','no-store')}
+function reply(res,status,body){if(res.headersSent)return;setHeaders(res);return res.status(status).json(body)}
+async function redis(command,args=[]){if(!REDIS_URL||!REDIS_TOKEN)throw new Error('Upstash Redis is not connected');const r=await fetch(REDIS_URL,{method:'POST',headers:{Authorization:`Bearer ${REDIS_TOKEN}`,'Content-Type':'application/json'},body:JSON.stringify([command,...args]),cache:'no-store'});if(!r.ok)throw new Error(`Redis HTTP ${r.status}`);const j=await r.json();if(j.error)throw new Error(j.error);return j.result}
+function authorized(req){const workerLogin=req.headers['x-flare-worker-login']||'';const workerPassword=req.headers['x-flare-worker-password']||'';const workerConfigured=LOGIN&&PASSWORD;return isAdminRequest(req)||(workerConfigured&&workerLogin===LOGIN&&workerPassword===PASSWORD)}
+function cleanSchedule(value){if(!Array.isArray(value))return [];return Array.from({length:7},(_,di)=>Array.from({length:12},(_,i)=>{const p=Array.isArray(value[di])?value[di][i]:null;return p&&typeof p==='object'?{time:String(p.time??''),title:String(p.title??''),category:String(p.category??''),description:String(p.description??''),image:String(p.image??'')}:{time:'',title:'',category:'',description:'',image:''}}))}
 export default async function handler(req,res){
+  setHeaders(res);
   try{
-    if(req.method==='OPTIONS'){cors(res);return res.status(204).end();}
-    const raw=await redis('GET',[KEY]);
-    let saved={}; if(raw){try{saved=JSON.parse(raw)}catch{saved={}}}
-    if(req.method==='GET'){
-      return send(res,200,{...defaults,...saved});
-    }
-    if(req.method==='POST'){
-      if(!authorized(req))return send(res,401,{error:'Unauthorized'});
-      const body=typeof req.body==='string'?JSON.parse(req.body):(req.body||{});
-      const data={...defaults,...saved};
-      for(const key of Object.keys(defaults)){
-        if(!Object.prototype.hasOwnProperty.call(body,key))continue;
-        if(key==='liveEnabled')data[key]=Boolean(body[key]);
-        else if(key==='scheduleData')data[key]=cleanSchedule(body[key]);
-        else if(typeof defaults[key]==='number')data[key]=Number(body[key]);
-        else data[key]=String(body[key]??'');
-      }
-      await redis('SET',[KEY,JSON.stringify(data)]);
-      return send(res,200,{ok:true,...data});
-    }
-    return send(res,405,{error:'Method not allowed'});
-  }catch(e){console.error('schedule API error:',e);return send(res,503,{error:e.message||'Server error'});}
+    if(req.method==='OPTIONS')return res.status(204).end();
+    const raw=await redis('GET',[KEY]);let saved={};if(raw){try{saved=JSON.parse(raw)}catch{saved={}}}
+    if(req.method==='GET')return reply(res,200,{...defaults,...saved});
+    if(req.method!=='POST')return reply(res,405,{error:'Method not allowed'});
+    if(!authorized(req))return reply(res,401,{error:'Unauthorized'});
+    const body=typeof req.body==='string'?JSON.parse(req.body):(req.body||{});const data={...defaults,...saved};
+    for(const key of Object.keys(defaults)){if(!Object.prototype.hasOwnProperty.call(body,key))continue;if(key==='liveEnabled')data[key]=Boolean(body[key]);else if(key==='scheduleData')data[key]=cleanSchedule(body[key]);else if(typeof defaults[key]==='number')data[key]=Number(body[key]);else data[key]=String(body[key]??'')}
+    await redis('SET',[KEY,JSON.stringify(data)]);return reply(res,200,{ok:true,...data});
+  }catch(e){console.error('schedule API error:',e);return reply(res,503,{error:e.message||'Server error'})}
 }
