@@ -27,6 +27,7 @@ function normalizeMessage(message) {
   const photo = Array.isArray(message.photo) && message.photo.length ? message.photo[message.photo.length - 1] : null;
   const video = message.video || null;
   const document = message.document || null;
+  const isDocumentVideo = (document?.mime_type || '').startsWith('video/');
   return {
     id,
     text,
@@ -35,8 +36,8 @@ function normalizeMessage(message) {
     time: message.date ? new Date(message.date * 1000).toISOString() : new Date().toISOString(),
     link: `https://t.me/flare_itv/${id}`,
     image: photo?.file_id || '',
-    videoFileId: video?.file_id || (document?.mime_type || '').startsWith('video/') ? document?.file_id || '' : '',
-    hasVideo: !!video || ((document?.mime_type || '').startsWith('video/')),
+    videoFileId: video?.file_id || (isDocumentVideo ? document?.file_id || '' : ''),
+    hasVideo: !!video || isDocumentVideo,
     source: 'telegram-bot'
   };
 }
@@ -82,20 +83,6 @@ async function storeMessage(message) {
   return writePosts(next);
 }
 
-async function bootstrapWebhook() {
-  if (!BOT_TOKEN) return { configured: false, reason: 'BOT_TOKEN_MISSING' };
-  const webhookUrl = `https://${process.env.VERCEL_URL || 'flare-press.vercel.app'}/api/telegram`;
-  const info = await telegram('getWebhookInfo');
-  if (info?.url !== webhookUrl) {
-    await telegram('setWebhook', {
-      url: webhookUrl,
-      allowed_updates: ['channel_post', 'edited_channel_post'],
-      drop_pending_updates: false
-    });
-  }
-  return { configured: true, webhook: webhookUrl };
-}
-
 async function fallbackPublicFeed() {
   const response = await fetch('https://t.me/s/flare_itv', {
     headers: { 'User-Agent': 'Mozilla/5.0 FLARE News Reader' }, cache: 'no-store'
@@ -138,23 +125,19 @@ export default async function handler(req, res) {
 
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-    const existing = await readPosts();
-    let posts = existing;
-    let source = 'redis';
+    let posts = await readPosts();
+    let source = posts.length ? 'redis' : 'telegram-public-fallback';
 
-    if (BOT_TOKEN) {
-      try {
-        await bootstrapWebhook();
-      } catch (e) {
-        console.error('Telegram webhook setup:', e.message);
-      }
-    }
-
+    // Webhook registration is intentionally not performed on every public feed request.
+    // Telegram webhook must be configured once, separately, to avoid turning feed reads
+    // into Telegram API authorization failures.
     if (!posts.length) {
       try {
         posts = await fallbackPublicFeed();
-        if (posts.length && REDIS_URL && REDIS_TOKEN) await writePosts(posts);
-        source = 'telegram-public-fallback';
+        if (posts.length && REDIS_URL && REDIS_TOKEN) {
+          await writePosts(posts);
+          source = 'telegram-public-fallback';
+        }
       } catch (e) {
         return res.status(502).json({ error: 'Telegram feed unavailable', message: e.message, botConfigured: !!BOT_TOKEN });
       }
