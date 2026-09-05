@@ -1,1 +1,14 @@
-{"$schema":"https://openapi.vercel.sh/vercel.json","headers":[{"source":"/(.*)","headers":[{"key":"Cache-Control","value":"no-cache, no-store, must-revalidate"}]}],"rewrites":[{"source":"/(.*)","destination":"https://cdn.jsdelivr.net/gh/flare117/FLARE.PRESS@main/$1"}]}
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ]
+}
