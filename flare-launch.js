@@ -1,6 +1,10 @@
 /* NEXTV Global Winter Launch — 01.12.2026 */
 (function(){
   'use strict';
+  const css=document.createElement('link');
+  css.rel='stylesheet';
+  css.href='nextv-visibility.css?v=20260912-2';
+  document.head.appendChild(css);
   const launch=new Date('2026-12-01T00:00:00+03:00');
   const banner=document.createElement('div');
   banner.className='launchBanner';
