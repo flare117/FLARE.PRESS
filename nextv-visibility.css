@@ -1,0 +1,34 @@
+/* NEXTV — readability and block visibility fix */
+html,body{color:#f7f9fc!important}
+body .telegramCard,body .news,body .quickCard,body .promo,body .onlinePlayer,body .onlineSchedule,body .adminCard,body .schedule,body .scheduleCard,body .programCard,body .currentProgram,body .nextProgram{color:#f7f9fc!important}
+body .telegramCard{background:#101a27!important;border:1px solid #354354!important;box-shadow:0 12px 32px rgba(0,0,0,.28)!important;opacity:1!important}
+body .telegramCard *{opacity:1!important}
+body .telegramCard h3,body .telegramCard h3 a{color:#fff!important;font-weight:850!important}
+body .telegramCard p{color:#b7c2d0!important}
+body .telegramCardTop,body .telegramCardTop span,body .telegramCardTop time{color:#aeb9c7!important}
+body .telegramCardBottom,body .telegramCardBottom span,body .articleMore{color:#fff!important}
+body .telegramCardBottom .articleMore{color:#ff6b57!important;font-weight:850!important}
+body .telegramImage{display:block!important;width:100%!important;height:210px!important;object-fit:cover!important;opacity:1!important}
+body .rateCard{background:#fff!important;color:#111!important;border:1px solid #d8dce2!important;box-shadow:0 8px 24px rgba(0,0,0,.12)!important;opacity:1!important}
+body .rateCard *{color:#111!important;opacity:1!important;text-shadow:none!important}
+body .rateCard span{font-size:13px!important;font-weight:700!important}
+body .rateCard b{font-size:21px!important;font-weight:900!important;margin-top:8px!important}
+body .rateCards{opacity:1!important}
+body .section h1,body .section h2,body .section h3,body .newsSection h2,body .newsSection h3{color:#fff!important}
+body .section p,body .newsSection p{color:#aeb9c7!important}
+body .newsStatus,body .telegramLoading,body .telegramEmpty{color:#b7c2d0!important}
+body .telegramEmpty a{color:#ff6b57!important}
+body .nav nav a{color:#d2d9e2!important;text-shadow:none!important}
+body .nav nav a:hover,body .nav nav a.active{color:#fff!important}
+body .logo:after{content:'NEXTV'!important;color:#fff!important}
+body .logo:before{content:'N'!important;color:#fff!important}
+body .top:after{content:'✦  НОВОГОДНИЙ ЭФИР  ✦'!important}
+body .eyebrow,body .sectionLabel,body .newsKicker{color:#f0c86a!important}
+body .onlineAction.secondary,body .outlineBtn,body .ghostBtn,body .ghostAdmin{background:#fff!important;color:#111!important;border-color:#fff!important;opacity:1!important}
+body .onlineAction.secondary *{color:#111!important}
+body .scheduleDaysBar,body .filter,body .day{opacity:1!important}
+body .filter.active{background:#fff!important;color:#111!important}
+body .scheduleCard *,body .programCard *,body .currentProgram *,body .nextProgram *{opacity:1!important}
+body .scheduleCard h3,body .programCard h3,body .currentProgram h3,body .nextProgram h3{color:#fff!important}
+body .scheduleCard p,body .programCard p,body .currentProgram p,body .nextProgram p{color:#b7c2d0!important}
+@media(max-width:700px){body .telegramImage{height:180px!important}}
