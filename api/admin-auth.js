@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
-const LOGIN = process.env.FLARE_ADMIN_LOGIN || 'flareitvadm';
-const PASSWORD = process.env.FLARE_ADMIN_PASSWORD || 'flareitvadm';
+const LOGIN = process.env.FLARE_ADMIN_LOGIN || '1488';
+const PASSWORD = process.env.FLARE_ADMIN_PASSWORD || '';
 const SECRET = process.env.FLARE_ADMIN_SECRET || PASSWORD;
 const COOKIE = 'flare_admin';
 const MAX_AGE = 60 * 60 * 24 * 7;
@@ -39,6 +39,7 @@ export default async function handler(req,res){
       res.setHeader('Set-Cookie',`${COOKIE}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax`);
       return res.status(200).json({ok:true,authenticated:false});
     }
+    if(!PASSWORD||!SECRET)return res.status(503).json({ok:false,error:'Админка не настроена: задайте FLARE_ADMIN_PASSWORD в переменных окружения.'});
     if(body.login!==LOGIN||body.password!==PASSWORD)return res.status(401).json({ok:false,error:'Неверный логин или пароль.'});
     res.setHeader('Set-Cookie',`${COOKIE}=${encodeURIComponent(tokenFor(LOGIN))}; Path=/; Max-Age=${MAX_AGE}; HttpOnly; Secure; SameSite=Lax`);
     return res.status(200).json({ok:true,authenticated:true});
