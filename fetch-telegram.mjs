@@ -5,7 +5,7 @@ const CHANNEL = 'flare_itv';
 const URL = `https://t.me/s/${CHANNEL}`;
 
 const res = await fetch(URL, {
-  headers: { 'user-agent': 'Mozilla/5.0 (compatible; FLARE-site/1.0)' }
+  headers: { 'user-agent': 'Mozilla/5.0 (compatible; MTV-site/1.0)' }
 });
 if (!res.ok) throw new Error(`Telegram returned HTTP ${res.status}`);
 const html = await res.text();
@@ -24,7 +24,7 @@ $('.tgme_widget_message_wrap').each((_, el) => {
   const link = `https://t.me/${CHANNEL}/${id}`;
   if (!text && !message.find('.tgme_widget_message_photo_wrap').length && !message.find('.tgme_widget_message_video').length) return;
 
-  posts.push({ id, text: text || 'Медиа-публикация FLARE', time, views, link });
+  posts.push({ id, text: text || 'Медиа-публикация MTV Россия', time, views, link });
 });
 
 posts.sort((a,b) => Number(b.id) - Number(a.id));
