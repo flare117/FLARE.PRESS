@@ -5,7 +5,7 @@ const CHANNEL = 'flare_itv';
 const URL = `https://t.me/s/${CHANNEL}`;
 const OUT = new URL('../data/telegram.json', import.meta.url);
 
-const res = await fetch(URL, {headers:{'user-agent':'Mozilla/5.0 FLARE Telegram Feed/1.0'}});
+const res = await fetch(URL, {headers:{'user-agent':'Mozilla/5.0 MTV Telegram Feed/1.0'}});
 if (!res.ok) throw new Error(`Telegram returned HTTP ${res.status}`);
 const html = await res.text();
 const $ = cheerio.load(html);
@@ -20,7 +20,7 @@ $('.tgme_widget_message_wrap').each((_,el)=>{
   const link=`https://t.me/${CHANNEL}/${id}`;
   const hasMedia=m.find('.tgme_widget_message_photo_wrap,.tgme_widget_message_video,.tgme_widget_message_document').length>0;
   if(!text && !hasMedia) return;
-  posts.push({id,text:text||'Медиа-публикация FLARE',time,views,link});
+  posts.push({id,text:text||'Медиа-публикация MTV Россия',time,views,link});
 });
 posts.sort((a,b)=>Number(b.id)-Number(a.id));
 await fs.writeFile(OUT, JSON.stringify({channel:CHANNEL,channelUrl:`https://t.me/${CHANNEL}`,updatedAt:new Date().toISOString(),posts:posts.slice(0,12)},null,2)+'\n');
